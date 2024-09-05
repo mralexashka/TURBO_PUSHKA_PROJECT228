@@ -50,6 +50,6 @@ while True:
     elif s == '2':
         is_palindrome() #в проверку на палиндром
     else:
-        print('Неверная команда')
+        print('Неверная команда PES')
 
 
