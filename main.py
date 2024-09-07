@@ -141,6 +141,7 @@ while True:
         if user != 0:
             print(f'Вы зарегестрировались, {user.login}!\n')
             users_keys[user.login] = user.password
+            users_list.append(user)
             continue
 
     elif s == '1':  #авторизация
