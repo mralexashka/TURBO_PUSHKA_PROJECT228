@@ -1,4 +1,4 @@
-import math
+import copy
 
 
 def print_matrix(matrix, width):
@@ -8,38 +8,26 @@ def print_matrix(matrix, width):
         print()
 
 
-a = list()
+a1 = list()
+a2 = list()
+a_m = list()
+a_r = list()
 n = int(input())
-flag = True
-a_p = list()
-a_pp = list()
-for i in range(n):
-    a.append([int(n) for n in input().split()])
-    a_p.append((i + 1) ** 2)
-a_s = list()
-sum_row = 0
-sum_diag = 0
-sum_diag2 = 0
-for i in range(n):
-    sum_col = 0
-    sum_diag += a[i][i]
-    sum_diag2 += a[n-1-i][i]
-    a_s.append(sum(a[i]))
-    for j in range(n):
-        sum_col += a[j][i]
-        if a[i][j] in a_p:
-            a_pp.append(a[i][j])
-    a_s.append(sum_col)
-a_s.append(sum_diag2)
-a_s.append(sum_diag)
+for _ in range(n):
+    a1.append([int(k) for k in input().split()])
 
-for s in a_s:
-    if s != sum_diag:
-        flag = False
-        break
-for p in a_p:
-    if p not in a_pp:
-        flag = False
-        break
-print(flag)
-print(a_s)
+s = int(input())
+a_m = copy.deepcopy(a1)
+a_r = copy.deepcopy(a1)
+for _ in range(s-1):
+    for i in range(n):
+        for j in range(n):
+            a_r[i][j] = 0
+            for p in range(n):
+
+                a_r[i][j] += a_m[i][p] * a1[p][j]
+    a_m = copy.deepcopy(a_r)
+
+print_matrix(a_r, 3)
+
+

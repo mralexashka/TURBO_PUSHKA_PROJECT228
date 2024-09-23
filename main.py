@@ -1,9 +1,4 @@
-class User:
-
-    def __init__(self, login, password):
-        self.login = login
-        self.password = password
-        self.notes = []
+import psycopg2
 
 
 def is_palindrome():
@@ -48,18 +43,22 @@ def calculator():
                 print(a / b)
 
 
-def authorization(users):
+def authorization(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    logins = [user[1] for user in users]
     while True:
         login = input('Введите логин:\n("back - назад")\n')
         if login == 'back':
-            return ''
+            return 0
 
-        if login in users:
+        if login in logins:
             password = input('Введите пароль:\n')
-            if password == users.get(login):
-                for u in users_list:
-                    if u.login == login:
-                        return u
+            for user in users:
+                if login in user and password in user:
+                    cursor.close()
+                    return user
             else:
                 print('неверный пароль')
                 continue
@@ -68,12 +67,18 @@ def authorization(users):
             continue
 
 
-def registration(users):
+def registration(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    logins = [user[1] for user in users]
+
     while True:
+
         new_login = input('Придумайте логин: \n"back" - назад\n')
         if new_login == 'back':
-            return 0
-        elif new_login in users:
+            return ''
+        elif new_login in logins:
             print('Такой логин уже занят')
             continue
         elif new_login == 'exit':
@@ -90,18 +95,29 @@ def registration(users):
                     print('Пароли не совпадают')
                     continue
                 else:
-                    new_user = User(new_login, new_password)
-                    return new_user
+                    cursor.execute(f"INSERT INTO users (login, password) VALUES ('{new_login}', '{new_password}')")
+                    connection.commit()
+                    cursor.close()
+                    return new_login
 
 
-def notes(user):
+def notes(user_id, connection):
+    cursor = connection.cursor()
     while True:
+        cursor.execute(f"SELECT * FROM notes WHERE id={user_id}")
+        all_notes = cursor.fetchall()
         s = input('"1" - Вывести заметки \n"2" - Добавить заметку \n"3" - Удалить заметку \n"back" - Назад\n')
         if s == '1':
-            for note in user.notes:
-                print(str(user.notes.index(note)+1)+') '+note)
+            i = 1
+            print(all_notes)
+            for user_note in all_notes:
+                if user_note[0] == user_id:
+                    print(str(i)+') '+user_note[1])
+                    i += 1
         elif s == '2':
-            user.notes.append(input('Введите текст новой заметки\n'))
+            text = input('Введите текст новой заметки\n')
+            cursor.execute(f"INSERT INTO notes (id, note) VALUES ({user_id}, '{text}')")
+            connection.commit()
         elif s == '3':
             n = input('Введите номер заметки для удаления\n')
             if not n.isdigit():
@@ -109,45 +125,39 @@ def notes(user):
                 continue
             else:
                 n = int(n)
-                if n > len(user.notes):
+                if n > len(all_notes):
                     print('Номер больше, чем кол-во заметок')
                     continue
                 else:
-                    del user.notes[n-1]
+
+                    cursor.execute(f"DELETE FROM notes WHERE note='{all_notes[n-1][1]}'")
+                    connection.commit()
                     continue
         elif s == 'back':
+            cursor.close()
             break
         else:
             print('Неверная команда')
             continue
 
 
-user1 = User('user1', 'password1')     #парочка пользователей
-user2 = User('user2', 'password2')
-users_keys = {
-    user1.login: user1.password,
-    user2.login: user2.password
-}
-users_list = [user1, user2]
-user1.notes = ['Позвонить Кирюхе', '1.10 - забронить дом', 'номер хаты 67']
-
-
 while True:
+    conn = psycopg2.connect(dbname="turbo_puska_db", user="postgres", password="alexashka", host="127.0.0.1",
+                            port="5432")
     s = input('"1" - авторизация \n"2" - регистрация\n"exit" - выход из программы\n')
     if s == "exit": #выход из приложения
+        conn.close()
         break
     elif s == '2':  #регистрация
-        user = registration(users_keys)
-        if user != 0:
-            print(f'Вы зарегестрировались, {user.login}!\n')
-            users_keys[user.login] = user.password
-            users_list.append(user)
+        new_login = registration(conn)
+        if new_login != '':
+            print(f'Вы зарегестрировались, {new_login}!\n')
             continue
 
     elif s == '1':  #авторизация
-        user = authorization(users_keys)
-        if user != '':
-            s = input(f'Привет, {user.login}! \n"1" - вход в калькулятор \n"2" - проверка на полиндром \n'
+        user = authorization(conn)
+        if user != 0:
+            s = input(f'Привет, {user[1]}! \n"1" - вход в калькулятор \n"2" - проверка на полиндром \n'
                       f'"3" - меню заметок \n"back" - назад\n')
         else:
             continue
@@ -158,7 +168,7 @@ while True:
         elif s == '2':  #в проверку на палиндром
             is_palindrome()
         elif s == '3':  #заметки
-            notes(user)
+            notes(user[0], conn)
         else:
             print('Неверная команда')
 
