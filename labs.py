@@ -29,5 +29,6 @@ for _ in range(s-1):
     a_m = copy.deepcopy(a_r)
 
 print_matrix(a_r, 3)
+#gitlab check
 
 
