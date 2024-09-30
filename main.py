@@ -141,35 +141,38 @@ def notes(user_id, connection):
             continue
 
 
-while True:
-    conn = psycopg2.connect(dbname="turbo_puska_db", user="postgres", password="alexashka", host="127.0.0.1",
-                            port="5432")
-    s = input('"1" - авторизация \n"2" - регистрация\n"exit" - выход из программы\n')
-    if s == "exit": #выход из приложения
-        conn.close()
-        break
-    elif s == '2':  #регистрация
-        new_login = registration(conn)
-        if new_login != '':
-            print(f'Вы зарегестрировались, {new_login}!\n')
-            continue
+def main():
+    while True:
+        conn = psycopg2.connect(dbname="turbo_puska_db", user="postgres", password="alexashka", host="127.0.0.1",
+                                port="5432")
+        print(type(conn))
+        s = input('"1" - авторизация \n"2" - регистрация\n"exit" - выход из программы\n')
+        if s == "exit": #выход из приложения
+            conn.close()
+            break
+        elif s == '2':  #регистрация
+            new_login = registration(conn)
+            if new_login != '':
+                print(f'Вы зарегестрировались, {new_login}!\n')
+                continue
 
-    elif s == '1':  #авторизация
-        user = authorization(conn)
-        if user != 0:
-            s = input(f'Привет, {user[1]}! \n"1" - вход в калькулятор \n"2" - проверка на полиндром \n'
-                      f'"3" - меню заметок \n"back" - назад\n')
-        else:
-            continue
-        if s == 'back':
-            continue
-        elif s == '1': #вход в калькулятор
-            calculator()
-        elif s == '2':  #в проверку на палиндром
-            is_palindrome()
-        elif s == '3':  #заметки
-            notes(user[0], conn)
-        else:
-            print('Неверная команда')
+        elif s == '1':  #авторизация
+            user = authorization(conn)
+            if user != 0:
+                s = input(f'Привет, {user[1]}! \n"1" - вход в калькулятор \n"2" - проверка на полиндром \n'
+                          f'"3" - меню заметок \n"back" - назад\n')
+            else:
+                continue
+            if s == 'back':
+                continue
+            elif s == '1': #вход в калькулятор
+                calculator()
+            elif s == '2':  #в проверку на палиндром
+                is_palindrome()
+            elif s == '3':  #заметки
+                notes(user[0], conn)
+            else:
+                print('Неверная команда')
 
 
+main()
