@@ -175,4 +175,4 @@ def main():
                 print('Неверная команда')
 
 
-main()
+main() #
